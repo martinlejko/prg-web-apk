@@ -1,0 +1,102 @@
+body {
+    background-image: url("hasbulla_hello.png");
+    background-repeat: no-repeat;
+    background-size: 50%;
+    background-size: cover;
+}
+
+h1.main_text {
+    color: blue;
+    font-size: 24px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    width: 100%;
+    background-color: #ccccff;
+    color: antiquewhite;
+    padding: 20px;
+    margin: 10px;
+}
+nav ul.myList#druhaMoznost {
+    background-color: blue;
+}
+
+nav > ul > li > ul {
+    display: none;
+}
+
+nav > ul > li:hover > ul {
+    display: block;
+}
+
+nav {
+    background-color: grey;
+    float: left;
+    width: 25%;
+}
+form {
+    float: right;
+    width: 25%;
+}
+
+.main_text {
+    float: left;
+    width: 50%;
+    text-align: center;
+}
+
+nav {
+    background-color: grey;
+    width: 25%;
+}
+
+.main_text {
+    width: 50%;
+    text-align: center;
+}
+
+form {
+    width: 25%;
+}
+
+nav, header h1, footer, form, .main_text {
+    border-radius: 7pt;
+}
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ccccff;
+    color: antiquewhite;
+    padding: 20px;
+    text-align: center;
+}
+
+form input[type="text"]{
+    background-color: #ccccff;
+    color: antiquewhite;
+    padding: 5px;
+    border-radius: 7pt;
+    border: 1px solid #ccccff;
+    background-color: blue;
+}
+li#druhaMoznost > ul.myList {
+    color: red;
+}
+p.bottom-test#neviem {
+    color: red;
+}
+
+a[href^="http"] {
+    color: pink;
+  }
+a:hover {
+    color: red;
+}
+li:first-child {
+    color: pink;
+}
+#selectorTest {
+    color: pink;
+}
