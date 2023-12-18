@@ -1,167 +1,220 @@
 <?php
 
-$definitionUrl = 'https://webik.ms.mff.cuni.cz/nswi142/php-assignment/story.json';
-$definition = json_decode(file_get_contents($definitionUrl), true);
-
-// Function to validate and get the current state
-function getCurrentState() {
-    // Extract site and statistics from the URL query
-    $site = $_GET['site'] ?? $GLOBALS['definition']['starting-site'];
-    $statistics = $_GET['statistics'] ?? [];
-
-    // Replace underscores with periods in statistics keys
-    $statistics = array_combine(
-        array_map(static function ($key) {
-            return str_replace('_', '.', $key);
-        }, array_keys($statistics)),
-        $statistics
-    );
-
-    return compact('site', 'statistics');
+function sendError($errorMess, $errorCode){
+    http_response_code($errorCode);
+    echo $errorMess;
+    exit(0);
 }
 
-// Define a basic checkVisibility function (you can adjust this based on your game logic
-function checkVisibility($statistics, $visibilityCondition) {
-    // Implement your logic here to determine visibility based on player statistics or 
-    return true;
+function changeSite($url, $site) {
+    $url_parts = parse_url($url);
 
+    $query_params = [];
+    if (isset($url_parts['query'])) {
+        parse_str($url_parts['query'], $query_params);
+    }
+    $query_params['site'] = $site;
+    $new_query = http_build_query($query_params);
 
-// Function to handle errors with appropriate HTTP status and message
-function handleError($status, $message) {
-    http_response_code($status);
-    die($message);
-}
-// Function to validate and get a specific site definition
-function getSiteDefinition($siteId) {
-    $sites = $GLOBALS['definition']['sites'];
+    $new_url = $url_parts['scheme'] . '://' . $url_parts['host'];
 
-    // Check if the site with the given identifier exists
-    if (!isset($sites[$siteId])) {
-        handleError(404, 'Site not found.');
+    if (isset($url_parts['port'])) {
+        $new_url .= ':' . $url_parts['port'];
     }
 
-    return $sites[$siteId];
+    $new_url .= $url_parts['path'] . '?' . $new_query;
+
+    return $new_url;
 }
 
-// Function to validate and apply effects to player statistics
+function getUrl(){
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'];
+    $uri = $_SERVER['REQUEST_URI'];
 
-// Adjusted applyEffects function
-function applyEffects($statistics, $effects) {
-    foreach ($effects as $statistic => $effect) {
-        $operation = $effect[0];
-        $value = substr($effect, 1);
+    return $protocol . '://' . $host . $uri;
+}
 
-        if (!isset($statistics[$statistic])) {
-            // Initialize statistic if not set
-            $statistics[$statistic] = ($operation === '+') ? 0 : 0;
+function statsGetter($stats){
+    foreach($_GET as $key => $value){
+        if(substr($key, 0, 11) !== "statistics_"){
+            continue;
         }
-
-        switch ($operation) {
-            case '=':
-                $statistics[$statistic] = (is_numeric($value)) ? (int)$value : $value;
-                break;
-            case '+':
-                $statistics[$statistic] += (int)$value;
-                break;
-            case '-':
-                $statistics[$statistic] -= (int)$value;
-                break;
-            default:
-                handleError(500, 'Invalid variable operation.');
-        }
+        $variable = substr($key, 11);
+        $stats = str_replace("{" . $variable . "}", $value, $stats);
     }
-
-    return $statistics;
+    return $stats;
 }
 
-function renderSite($site, $currentState) {
-    echo '<div class="site">';
-    echo '<p>' . substituteText($site['text'], $currentState['statistics']) . '</p>';
+function processStringSite($site, $url){
+    $content = "<form class=\"form\" action=\"$url\" method=\"get\">
+    <input type=\"hidden\" name=\"site\" value=\"" . urlencode($site['site']) . "\">
+    <label>{$site['label']}
+        <input type=\"text\" name=\"statistics_{$site['target']}\">
+        <input type=\"submit\" value=\"Submit\">
+    </label>
+    </form>";
+    return $content;
+}
 
-    if ($site['type'] === 'input-string') {
-        $target = isset($site['target']) ? $site['target'] : '';
+function checker($condition, $var) {
+    $symbol = substr($condition, 0, 1);
+    $number = substr($condition, 1);
+    if (!is_numeric($number)){
+        sendError("Invalid variable value.", 500);
+    }
+    switch($symbol){
+        case "<":
+            return $var < $number;
+        case ">":
+            return $var > $number;
+    }
+}
 
-        if ($target === '') {
-            // Handle error if the 'target' property is missing
-            handleError(400, 'Missing target property for input-string site.');
-        }
-
-        $siteParam = 'site=' . $site['site'];
-        $statisticsParams = http_build_query($currentState['statistics'], '', '&', PHP_QUERY_RFC3986);
-        $formAction = '?' . $siteParam;
-
-        if ($statisticsParams !== '') {
-            $formAction .= '&' . $statisticsParams;
-        }
-
-        echo '<form method="get" action="' . $formAction . '">';
-        echo '<label for="' . $target . '">' . $site['label'] . '</label>';
-        echo '<input type="text" name="statistics[' . str_replace('.', '_', $target) . ']" id="' . $target . '" value="' . htmlspecialchars($currentState['statistics'][$target] ?? '') . '" required>';
-        echo '<input type="submit" value="Submit">';
-        echo '</form>';
-    } else {
-        if (isset($site['actions'])) {
-            echo '<ul class="actions">';
-            foreach ($site['actions'] as $action) {
-                $actionText = isset($action['text']) ? substituteText($action['text'], $currentState['statistics']) : '';
-                $actionSite = isset($action['site']) ? $action['site'] : '';
-                $actionTarget = isset($action['target']) ? $action['target'] : '';
-
-                if (!isset($action['visibility']) || checkVisibility($currentState['statistics'], $action['visibility'])) {
-                    // Include existing statistics in the URL query parameters
-                    $actionParams = http_build_query(['site' => $actionSite] + $currentState['statistics'], '', '&', PHP_QUERY_RFC3986);
-                    echo '<li><a href="?' . $actionParams . '">' . $actionText . '</a></li>';
-                }
+function actionProcessor($action){
+    if(isset($action["visibility"])){
+        foreach($action["visibility"] as $variable_name => $condition){
+            if(!isset($_GET["statistics_" . $variable_name])){
+                sendError("Missing variable.", 500);
             }
-            echo '</ul>';
+            if(!checker($condition, $_GET["statistics_" . $variable_name])){
+                return "";
+            }
         }
     }
 
-    echo '</div>';
-}
-
-
-// Adjusted substituteText function
-function substituteText($text, $statistics) {
-    preg_match_all('/\{(.*?)\}/', $text, $matches);
-
-    foreach ($matches[1] as $match) {
-        $property = str_replace('.', '_', $match);
-        if (isset($statistics[$property])) {
-            $text = str_replace('{' . $match . '}', $statistics[$property], $text);
-        } else {
-            // Replace with a placeholder or an empty string if the property is not set
-            $text = str_replace('{' . $match . '}', '[unknown]', $text);
+    if(isset($action["effect"])){
+        foreach($action["effect"] as $variable_name => $effect){
+            $var = substr($effect, 0, 1);
+            $number = substr($effect, 1);
+            if (!is_numeric($number)){
+                sendError("Invalid variable value.", 500);
+            }
+            switch($var){
+                case "=":
+                    $_GET["statistics_" . $variable_name] = $number;
+                    break;
+                case "+":
+                    if(!isset($_GET["statistics_" . $variable_name])){
+                        sendError("Missing variable.", 500);
+                    }
+                    $_GET["statistics_" . $variable_name] += $number;
+                    break;
+                case "-":
+                    if(!isset($_GET["statistics_" . $variable_name])){
+                        sendError("Missing variable.", 500);
+                    }
+                    $_GET["statistics_" . $variable_name] -= $number;
+                    break;
+            }
         }
     }
 
-    return $text;
+
+    $_GET["site"] = $action["site"];
+    return "<li>
+    <a href=\"?" . http_build_query($_GET) . "\">" . $action["text"] . "</a>
+    </li>";
 }
 
-$currentState = getCurrentState();
-$currentSite = getSiteDefinition($currentState['site']);
+function processSite($site){
+    if(!isset($site["actions"])){
+        return "";
+    }
 
-// Adjusted form submission handling
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($currentSite['type']) && $currentSite['type'] === 'input-string') {
-    // Process the form submission and update player statistics
-    $target = $currentSite['target'] ?? null;
+    $content = "<ul class=\"actions\">";
+    foreach($site["actions"] as $action){
+        $content .= actionProcessor($action);
+    }
+    $content .= "</ul>";
+    return $content;
+}
 
-    if ($target !== null && isset($_GET['statistics'][$target])) {
-        $inputValue = $_GET['statistics'][$target];
-        if ($inputValue === '') {
-            handleError(400, 'Missing input value.');
+function siteWirter($storyGet){
+    $name = $_GET["site"];
+
+    if(!isset($storyGet["sites"][$name])){
+        sendError("", 404);
+    }
+
+    //get url
+    $url = getUrl();
+
+    //getting the stats
+    $stats = statsGetter($storyGet["sites"][$name]['text']);
+
+    //getting the content
+    $content = "<div class=\"content\">" . $stats . "</div>";
+    if ($storyGet["sites"][$name]["type"] === "basic") {
+        $content .= processSite($storyGet["sites"][$name]);
+    } else {
+        $content .= processStringSite($storyGet["sites"][$name], $url);
+    }
+
+    //html body
+    $htmlBody = "
+    <body>
+    <div class=\"$name\">
+    " . $content . "
+    </div>
+    </body>";
+
+    //full html
+    $htmlContent = "
+    <!DOCTYPE html>
+    <html lang=\"en\">
+    <head>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #15202b;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-
-        $currentState['statistics'][$target] = $inputValue;
-    }
-
-    // Redirect to the next site
-    $nextSite = $currentSite['site'] ?? null;
-    if ($nextSite !== null) {
-        header('Location: ?site=' . $nextSite . '&' . http_build_query(['statistics' => $currentState['statistics']], '', '&', PHP_QUERY_RFC3986));
-        exit();
-    }
+        .title {
+            text-align: center;
+            font-size: 3em; /* Increased font size */
+            margin-bottom: 30px; /* Adjusted margin */
+            font-family: 'Times New Roman', Times, serif; /* Changed font family */
+            color: #f0c040; /* Different title color */
+        }
+        .content {
+            line-height: 1.6;
+            font-size: 1.2em; /* Increased content font size */
+            font-family: 'Georgia', serif; /* Changed font family */
+        }
+    </style>
+    <title>" . $storyGet["title"] . "</title>
+    </head>" . $htmlBody;
+    return $htmlContent;
 }
 
-// Render the HTML for the current site
-renderSite($currentSite, $currentState);
+//getting the JSON from the website
+$urlStory = "https://webik.ms.mff.cuni.cz/nswi142/php-assignment/story.json";
+$local = "story.json";
+
+//parsing  the JSON and checks
+$storyGet = file_get_contents($urlStory);
+
+if ($storyGet === false){
+    sendError("Error while getting the JSON from the website", 500);
+}
+
+$storyArray = json_decode($storyGet, true);
+
+if ($storyArray === null || !isset($storyArray["sites"]) || !isset($storyArray["starting-site"]) || !isset($storyArray["title"])){
+    sendError("Invalid definition", 500);
+}
+
+//getting the site
+$site = $_GET['site'];
+if (!empty($site)){
+   echo siteWirter($storyArray); 
+} else {
+    header("Location: " . changeSite(getUrl(), $storyArray["starting-site"]));
+    exit();
+}
