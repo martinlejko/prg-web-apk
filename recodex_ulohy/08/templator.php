@@ -99,34 +99,35 @@ class Templator
         $stack = [];
 
         while ($charIndex < $length) {
-            if ($fileContent[$charIndex] == '{' && $charIndex + 2 < $length) {
-                switch ($fileContent[$charIndex + 1]) {
-                    case '=':
-                        $this->handleExpressionMarker($compiledContent, $stack, $charIndex, $length, $fileContent);
-                        break;
-                    case 'i':
-                        $this->handleConditionMarker($compiledContent, $stack, $charIndex, $length, $fileContent, 'if');
-                        break;
-                    case 'f':
-                        if ($fileContent[$charIndex + 2] == 'o' && $fileContent[$charIndex + 3] == 'r' && $fileContent[$charIndex + 4] !== 'e') {
-                            $this->handleConditionMarker($compiledContent, $stack, $charIndex, $length, $fileContent, 'for');
-                        } elseif ($fileContent[$charIndex + 2] == 'o' && $fileContent[$charIndex + 3] == 'r' && $fileContent[$charIndex + 4] == 'e' && $fileContent[$charIndex + 5] == 'a' && $fileContent[$charIndex + 6] == 'c' && $fileContent[$charIndex + 7] == 'h') {
-                            $this->handleConditionMarker($compiledContent, $stack, $charIndex, $length, $fileContent, 'foreach');
-                        } else {
-                            $compiledContent .= '{';
-                            $charIndex++;
-                        }
-                        break;
-                    case '/':
-                        $this->handleClosingTag($compiledContent, $stack, $charIndex, $length, $fileContent);
-                        break;
-                    default:
-                        $compiledContent .= '{';
-                        $charIndex++;
-                }
-            } else {
+            if (!($fileContent[$charIndex] == '{' && $charIndex + 2 < $length)){
                 $compiledContent .= $fileContent[$charIndex];
-                $charIndex++;
+                $charIndex++;               
+            } else{
+                $nextChars = substr($fileContent, $charIndex + 1, 8); 
+
+                $patterns = [
+                    '/^=/' => 'handleExpressionMarker($compiledContent, $stack, $charIndex, $length, $fileContent);',
+                    '/^i/' => 'handleConditionMarker($compiledContent, $stack, $charIndex, $length, $fileContent, "if");',
+                    '/^for(?!each)/' => 'handleConditionMarker($compiledContent, $stack, $charIndex, $length, $fileContent, "for");',
+                    '/^foreach/' => 'handleConditionMarker($compiledContent, $stack, $charIndex, $length, $fileContent, "foreach");',
+                    '/^\//' => 'handleClosingTag($compiledContent, $stack, $charIndex, $length, $fileContent);',
+                ];
+                
+                $matched = false;
+        
+                foreach ($patterns as $pattern => $action) {
+                    if (preg_match($pattern, $nextChars)) {
+                        $matched = true;
+                        eval('$this->' . $action );
+                        break;
+                    }
+                }
+        
+                if (!$matched) {
+                    $compiledContent .= '{';
+                    $charIndex++;
+                }
+
             }
         }
 
