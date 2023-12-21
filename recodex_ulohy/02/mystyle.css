@@ -1,0 +1,77 @@
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+    font-family: 'myCustomFont', Arial;
+    font-size: 40px;
+}
+
+@font-face {
+    font-family: 'myCustomFont'; 
+    src: url(squada.ttf) format('opentype');
+  }
+
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; 
+    padding: 200px;
+}
+
+button, img, table {
+    margin: 5px; 
+}
+
+img {
+    position: relative;
+    top: 100px;
+    transition: transform 2s ease-in-out;
+    perspective: 100px;
+}
+
+img:hover {
+    transform: rotateX(720deg);
+}
+
+button {
+    font-size: 20px;
+    color: #333;
+    text-align: center;
+    padding: 20px;
+    position: relative;
+    top: 100px;
+    left: 50%;
+    background-color: #fff;
+    border: 2px solid #333;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+    background-color: #333;
+    color: #fff;
+    transform: scale(1.1);
+}
+
+table {
+    margin-top: 300px;
+}
+
+
+p:target {
+    background-color: grey;
+}
+  
+p:target::before {
+    margin-right: 0.25em;
+}
+
+  
+  
