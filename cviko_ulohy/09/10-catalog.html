@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>My Catalog</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+        }
+        table {
+            border-collapse: collapse;
+        }
+    </style>
+</head>
+<body>
+    <table id="data-table">
+        <tr>
+            <th>Number</th>
+            <th>Description</th>
+        </tr>
+    </table>
+
+    <script type="text/javascript">
+        class Model {
+            constructor() {
+                // this.csvUrl = "https://webik.ms.mff.cuni.cz/~56704379/datax.csv";
+                // this.csvUrl = "http://127.0.0.1:5500/datax.csv";
+            }
+
+            async listItems() {
+                try {
+                    const csvData = await this.fetchCSVData(this.csvUrl);
+                    return this.convertCSVToJson(csvData);
+                } catch (error) {
+                    console.error("Error while fetching and processing CSV:", error);
+                    return [];
+                }
+            }
+
+            async fetchCSVData(url) {
+                const response = await fetch(url);
+                return response.text();
+            }
+
+            convertCSVToJson(csvString) {
+                const rows = csvString.trim().split('\n');
+                rows.shift();
+                return rows.map((line, index) => {
+                    const values = line.split(';');
+                    return {
+                        title: values[0] || "N/A",
+                        description: values[1] || "N/A"
+                    };
+                });
+            }
+        }
+
+        (function initialize() {
+            const model = new Model();
+
+            function addRow({ title, description }) {
+                const titleElement = document.createElement("td");
+                titleElement.textContent = title;
+
+                const descriptionElement = document.createElement("td");
+                descriptionElement.textContent = description;
+
+                const rowElement = document.createElement("tr");
+                rowElement.appendChild(titleElement);
+                rowElement.appendChild(descriptionElement);
+                document.getElementById("data-table").appendChild(rowElement);
+            }
+            // function addRow({ title, description }) {
+            //     const table = document.getElementById("data-table");
+
+            //     const titleElement = document.createElement("td");
+            //     titleElement.textContent = title;
+
+            //     const descriptionElement = document.createElement("td");
+            //     descriptionElement.textContent = description;
+
+            //     const rowElement = document.createElement("tr");
+            //     rowElement.appendChild(titleElement);
+            //     rowElement.appendChild(descriptionElement);
+
+            //     table.appendChild(rowElement); // Append the created row to the table
+            // }
+
+            model.listItems().then((items) => items.forEach(addRow));
+    //         model.listItems().then((items) => {
+    //             console.log(items); // Print fetched items to the console
+    // // items.forEach(addRow); // This line adds rows to the table
+    //         });
+        })();
+    </script>
+</body>
+</html>

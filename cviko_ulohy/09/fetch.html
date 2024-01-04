@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetch JSON Example</title>
+</head>
+<body>
+
+<button id="actionButton">Action</button>
+<div id="result"></div>
+
+<script>
+    document.getElementById('actionButton').addEventListener('click', fetchData);
+
+    function fetchData() {
+        fetch('https://webik.ms.mff.cuni.cz/nswi142/practicals/script/10-anywhere-json.php')
+            .then(response => response.json())
+            .then(data => {
+                const message = data.message || 'No message available.';
+                document.getElementById('result').innerText = message;
+            })
+            .catch(error => {
+                document.getElementById('result').innerText = 'Error fetching data.';
+            });
+    }
+</script>
+
+</body>
+</html>
