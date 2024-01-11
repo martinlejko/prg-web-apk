@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>JavaScript model</title>
+</head>
+<body>
+  <!-- Use following element to show loading message. -->
+  <div id="message" style="height: 2em;"></div>
+
+  <div>
+    <Label>
+      Search: <input type="text" id="search">
+    </Label>
+  </div>
+
+  <!-- Insert data items into following element. -->
+  <ul id="list"></ul>
+
+  <script type="text/javascript">
+
+function fetchWrap(url) {
+  const delay = Math.random() * 3000;
+  return new Promise((resolve, reject) => {
+    setTimeout(() => fetch(url).then(resolve).catch(reject), delay);
+  });  
+}
+
+/**
+ * Responsible for loading data and performing API calls.
+ */
+ class Model {
+
+async fetchList() {
+    const response = await fetchWrap('https://webik.ms.mff.cuni.cz/nswi142/practicals/script/11-api.php');
+    const data = await response.json();
+    console.log('Fetched list:', data);
+    return data;
+}
+
+async fetchItem(identifier) {
+ 
+    const url = 'https://webik.ms.mff.cuni.cz/nswi142/practicals/script/11-api.php?identifier=' + identifier;
+    const response = await fetchWrap(url);
+    const data = await response.json();
+    console.log('Fetched item:', identifier, data);
+    return data;
+}
+
+}
+
+
+
+/**
+ * Handles operations.
+ */ 
+ class Presenter {
+  constructor() {
+    this.items = []; 
+    this.view = new View(this); 
+  }
+
+  async mount(model) {
+    this.view.onMount();
+    this.view.onStartLoading();
+
+    try {
+      const itemList = await model.fetchList();
+      for (const item of itemList.data) {
+        this.view.onNewItem(item.id);
+
+        try {
+          const itemData = await model.fetchItem(item.id);
+          this.items.push(itemData); // Store item data for filtering
+          this.view.onItemData(item.id, itemData);
+        } catch (error) {
+          this.view.onItemFailed(item.id);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch items:', error);
+    }
+
+    this.view.onCompleted(); 
+    this.view.enableSearch();
+  }
+
+  onSearch(query) {
+    const filteredItems = this.items.filter(item => 
+      item.data.first_name.toLowerCase().includes(query.toLowerCase())
+    );
+    this.view.updateList(filteredItems); 
+  }
+}
+
+
+
+
+class View {
+  constructor(presenter) {
+    this.presenter = presenter; 
+  }
+
+  onMount() {
+    console.log("Component mounted.");
+    const searchInput = document.getElementById('search');
+    searchInput.addEventListener('input', () => {
+      this.presenter.onSearch(searchInput.value);
+    });
+    searchInput.disabled = true; 
+  }
+
+
+  onStartLoading() {
+    document.getElementById('message').textContent = 'Loading...';
+  }
+
+  onNewItem(identifier) {
+    const list = document.getElementById('list');
+    const listItem = document.createElement('li');
+    listItem.id = 'item-' + identifier;
+    listItem.textContent = 'Loading item ' + identifier + '...';
+    list.appendChild(listItem);
+  }
+
+  onItemData(identifier, payload) {
+    const listItem = document.getElementById('item-' + identifier);
+    listItem.textContent = payload.first_name + ' ' + payload.last_name;
+  }
+
+  onCompleted() {
+    document.getElementById('message').textContent = '';
+  }
+
+
+  onItemData(identifier, item) {
+    const listItem = document.getElementById('item-' + identifier);
+    listItem.textContent = this.formatItemData(item.data);
+  }
+
+  enableSearch() {
+    const searchInput = document.getElementById('search');
+    searchInput.disabled = false; // Enable search input after all data is loaded
+  }
+
+  updateList(filteredItems) {
+    const list = document.getElementById('list');
+    list.innerHTML = ''; // Clear current list
+    filteredItems.forEach(item => {
+      const listItem = document.createElement('li');
+      listItem.textContent = this.formatItemData(item.data);
+      list.appendChild(listItem);
+    });
+  }
+
+
+  formatItemData(itemData) {
+    if (itemData && itemData.first_name && itemData.last_name) {
+      return itemData.first_name + ' ' + itemData.last_name;
+    } else {
+      return 'Unknown Name'; 
+    }
+  }
+
+}
+
+
+(function() {
+  const model = new Model();
+  const presenter = new Presenter();
+  presenter.mount(model);
+})();
+
+
+  </script>
+</body>
+</html>
