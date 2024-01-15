@@ -1,0 +1,195 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #494949;
+    color: #333; 
+}
+
+.common-container {
+    width: 80%;
+    margin: 20px auto;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background: #fff;
+    border-radius: 8px;
+}
+
+.common-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-family: 'Arial', sans-serif;
+    font-size: 18px;
+}
+
+.common-table th,
+.common-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.button {
+    background-color: #4CAF50; 
+    color: white;
+    padding: 10px 15px;
+    margin: 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.button:hover {
+    opacity: 0.8;
+}
+
+.common-container a {
+    color: #0f95d2;
+    text-decoration: none;
+}
+
+
+.common-container a:hover {
+    text-decoration: underline;
+}
+
+#article-form label {
+    margin-top: 10px;
+    font-size: 18px; 
+    font-weight: bold;
+    color: #333;
+}
+
+#article-form input[type="text"],
+#article-form textarea {
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.button-wrapper {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+#article-form input[type="submit"],
+#back-button , #edit-button, #prev-button, 
+#next-button, #create-button, #create-cancel, #create-submit {
+    flex-grow: 1;
+    padding: 14px 20px;
+    margin: 0 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#article-form input[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#back-button, #create-cancel {
+    background-color: #f44336;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#edit-button {
+    background-color: #2196F3;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#prev-button, #next-button {
+    background-color: #2196F3;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#create-button, #create-submit {
+    background-color: #4CAF50;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#article-form input[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+#back-button:hover {
+    background-color: #d32f2f;
+}
+
+.dialog {
+border: 1px solid #ddd;
+border-radius: 8px;
+padding: 20px;
+}
+
+
+#article-head, #article-header {
+    font-weight: bold;
+    text-align: center;
+    font-size: 30px;
+}
+
+
+
+#article-list-table tr td:nth-child(3) {
+    color: red;
+}
+
+
+#delete-link {
+    color: red;
+    text-decoration: none;
+}
+
+#delete-link:hover {
+    text-decoration: underline;
+}
+
+
+
+
+#utm-form-container {
+    margin-top: 20px; 
+}
+
+#utm-form {
+    display: flex;
+    flex-direction: column;
+    max-width: 600px; 
+    margin: 0 auto; 
+}
+
+#utm-form label {
+    margin-bottom: 5px;
+}
+
+#utm-form input {
+    width: 600px;
+    padding: 8px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
