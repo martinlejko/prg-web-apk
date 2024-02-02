@@ -1,0 +1,16 @@
+Model
+--drawModelLines
+--drawModelSimpleTriangle
+--drawModelBarycentric
+--drawModelLight
+
+drawing the triangles
+--painters algorithm
+--ninary space partitioning trees 
+
+Implement
+1 -- first simple triangles just with the line function
+2 -- simple triangles that have color like in the video / tutorial
+3 -- implement the triangle from github also with the light vector
+4 -- implement a zbuffer
+5 -- 
