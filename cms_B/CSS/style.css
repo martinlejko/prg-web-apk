@@ -1,0 +1,92 @@
+
+body, h1, h2, h3, p, table {
+    margin: 0;
+    padding: 0;
+}
+
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+main {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    color: #333;
+}
+.tag-paragraph {
+    display: inline-block;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    padding: 5px;
+    background-color: #6c757d; 
+    color: #fff;
+    border-radius: 5px;
+}
+
+
+#article-list-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#article-list-table th, #article-list-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+
+.list-buttons {
+    margin-top: 20px;
+}
+
+button {
+    padding: 10px;
+    background-color: #4285f4;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+#dialog {
+    width: 300px;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#create-article-table {
+    width: 100%;
+}
+
+#create-article-table td {
+    padding: 8px;
+}
+
+#cancel {
+    background-color: #ccc;
+}
+
+#submit {
+    background-color: #4285f4;
+    color: #fff;
+}
+
+
+#footer {
+    text-align: center;
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #333;
+    color: #fff;
+}
